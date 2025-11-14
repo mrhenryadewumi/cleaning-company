@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -62,8 +61,8 @@ CONVERSATION RULES:
 - Keep replies to about 6–8 short sentences unless they ask for more detail.
 `;
 
-    // ✅ Explicitly type messages so TS is happy
-    const chatMessages: ChatCompletionMessageParam[] = [
+    // ✅ no strict typing here – keep it flexible
+    const chatMessages: any[] = [
       { role: "system", content: systemPrompt },
       ...incomingMessages
         .filter((m) => m && m.text)
@@ -75,7 +74,7 @@ CONVERSATION RULES:
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: chatMessages,
+      messages: chatMessages as any, // 👈 relax the type for OpenAI client
       temperature: 0.4,
       max_tokens: 350,
     });
