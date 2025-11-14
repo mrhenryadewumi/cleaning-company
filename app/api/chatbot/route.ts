@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -61,13 +62,13 @@ CONVERSATION RULES:
 - Keep replies to about 6–8 short sentences unless they ask for more detail.
 `;
 
-    // Build OpenAI messages from full conversation
-    const chatMessages = [
+    // ✅ Explicitly type messages so TS is happy
+    const chatMessages: ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
       ...incomingMessages
         .filter((m) => m && m.text)
         .map((m) => ({
-          role: m.from === "user" ? ("user" as const) : ("assistant" as const),
+          role: m.from === "user" ? "user" : "assistant",
           content: m.text,
         })),
     ];
