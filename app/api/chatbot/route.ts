@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// ⚠️ Notice: no new OpenAI(...) at the top any more
+
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing OPENAI_API_KEY");
+  }
+  return new OpenAI({ apiKey });
+}
 
 export async function POST(request: Request) {
   try {
@@ -61,7 +67,6 @@ CONVERSATION RULES:
 - Keep replies to about 6–8 short sentences unless they ask for more detail.
 `;
 
-    // ✅ no strict typing here – keep it flexible
     const chatMessages: any[] = [
       { role: "system", content: systemPrompt },
       ...incomingMessages
@@ -72,9 +77,11 @@ CONVERSATION RULES:
         })),
     ];
 
+    const openai = getOpenAIClient(); // ✅ now created here, not at the top
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: chatMessages as any, // 👈 relax the type for OpenAI client
+      messages: chatMessages as any,
       temperature: 0.4,
       max_tokens: 350,
     });
@@ -91,7 +98,7 @@ CONVERSATION RULES:
         reply:
           "Sorry, there was a problem contacting RainClean support. Please try again in a moment or use the Contact page / WhatsApp link.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
